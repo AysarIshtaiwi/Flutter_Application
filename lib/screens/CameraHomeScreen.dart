@@ -120,7 +120,7 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
 //                        : new Container(),
                     //TODO Go to next Page
                     _recordedCounter != -0
-                        ? nextPageButton()
+                        ? translateButton()
                         : new Container(),
                   ],
                 ),
@@ -142,6 +142,24 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
           color: Colors.white,
         ),
         backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Widget translateButton(){
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.only(left: 45.0),
+        child: FloatingActionButton(
+          onPressed:setCameraResult,
+          child: Icon(
+            Icons.translate,
+            size: 40.0,
+            color: Colors.white,
+          ),
+          backgroundColor: Colors.red,
+        ),
       ),
     );
   }
@@ -175,34 +193,6 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
     return item;
   }
 
-  Widget _getToggleCamera() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(50.0)),
-          onTap: () {
-            !_toggleCamera
-                ? onCameraSelected(widget.cameras[1])
-                : onCameraSelected(widget.cameras[0]);
-            setState(() {
-              _toggleCamera = !_toggleCamera;
-            });
-          },
-          child: Container(
-            padding: EdgeInsets.all(4.0),
-            child: Image.asset(
-              'images/ic_switch_camera_3.png',
-              color: Colors.grey[200],
-              width: 42.0,
-              height: 42.0,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   void onCameraSelected(CameraDescription cameraDescription) async {
     if (controller != null) await controller.dispose();

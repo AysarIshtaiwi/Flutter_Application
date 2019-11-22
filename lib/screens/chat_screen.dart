@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flash_chat/screens/welcome_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 final _firestore = Firestore.instance;
@@ -18,6 +17,7 @@ User frienduser;
 class ChatScreen extends StatefulWidget {
   static String id = 'chat_screen';
   final String profileId;
+  String result;
 
   ChatScreen({this.profileId});
 
@@ -55,6 +55,15 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       print(e);
     }
+  }
+  toCamera()async{
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CameraHomeScreen(cameras,2,widget.profileId)),
+    );
+
+    print("resaaaaaaaaaaaaaaalt"+result);
+
   }
 
   getfrienduser() async {
@@ -151,14 +160,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CameraHomeScreen(
-                            cameras
-                          ),
-                        ),
-                      );
+                      toCamera();
+//                      Navigator.push(
+//                        context,
+//                        MaterialPageRoute(
+//                          builder: (context) => CameraHomeScreen(
+//                            cameras,2,widget.profileId
+//                          ),
+//                        ),
+//                      );
                     },
                     child: Icon(
                       Icons.photo_camera,

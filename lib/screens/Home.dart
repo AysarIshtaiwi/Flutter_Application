@@ -2,7 +2,6 @@ import 'package:flash_chat/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/screens/Profile.dart';
-import 'package:flash_chat/screens/Timeline.dart';
 import 'package:flash_chat/screens/search.dart';
 import 'package:flash_chat/screens/CameraHomeScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -66,7 +65,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Contact(),
           ActivityFeed(),
-          CameraHomeScreen(cameras),
+          CameraHomeScreen(cameras,1,""),
           Search(),
           Profile(profileId: currentUser?.id),
         ],

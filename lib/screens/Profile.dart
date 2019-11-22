@@ -269,7 +269,6 @@ class _ProfileState extends State<Profile> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-        User user = User.fromDocument(snapshot.data);
         return Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(

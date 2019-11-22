@@ -1,15 +1,24 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'package:flash_chat/screens/chat_screen.dart';
+import 'package:flash_chat/screens/contact.dart';
+import 'package:flash_chat/components/progress.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:path/path.dart';
+import 'package:async/async.dart';
+import 'dart:convert';
 
 class CameraHomeScreen extends StatefulWidget {
-
   List<CameraDescription> cameras;
-  CameraHomeScreen(this.cameras);
+  int caller;
+  String id;
+  CameraHomeScreen(this.cameras,this.caller,this.id);
 
   @override
   State<StatefulWidget> createState() {
@@ -20,7 +29,6 @@ class CameraHomeScreen extends StatefulWidget {
 class _CameraHomeScreenState extends State<CameraHomeScreen> {
   String imagePath;
   int _recordedCounter = 0;
-  bool _toggleCamera = false;
   bool _startRecording = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   CameraController controller;
@@ -31,6 +39,10 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
   String videoPath;
   VideoPlayerController videoController;
   VoidCallback videoPlayerListener;
+  Future<String> message;
+  bool translationDone=false;
+  final FlutterTts flutterTts = new FlutterTts();
+
 
   @override
   void initState() {
@@ -74,6 +86,7 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
       child: Container(
         child: Stack(
           children: <Widget>[
+
             CameraPreview(controller),
             Align(
               alignment: Alignment.bottomCenter,
@@ -122,37 +135,84 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
                     _recordedCounter != -0
                         ? translateButton()
                         : new Container(),
+                    FutureBuilder(
+                      future: message,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return new Container();
+                        } else if (snapshot.hasError) {
+                          print(
+                              "no data ********************************************************");
+                          return new Container();
+                        } else if (message!=null) {
+
+                          return nextPageButton(context);
+                        }
+                        return Container();
+                      },
+                    ),
                   ],
                 ),
               ),
+            ),
+            FutureBuilder(
+              future: message,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return circularProgress();
+                } else if (snapshot.hasError) {
+                  print(
+                      "no data ********************************************************");
+                  return circularProgress();
+                } else if (message!=null) {
+
+                  return new Container();
+                }
+                return Container();
+              },
             ),
           ],
         ),
       ),
     );
   }
-  Widget nextPageButton(){
+
+  Widget nextPageButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
-      child: FloatingActionButton(
-        onPressed:setCameraResult,
-        child: Icon(
-          Icons.navigate_next,
-          size: 50.0,
-          color: Colors.white,
+      child: Container(
+        margin: EdgeInsets.only(right: 45.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            setState(() {
+              nextPage(context);
+            });
+          },
+          child: Icon(
+            Icons.navigate_next,
+            size: 50.0,
+            color: Colors.white,
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
       ),
     );
   }
 
-  Widget translateButton(){
+  Widget translateButton() {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: EdgeInsets.only(left: 45.0),
         child: FloatingActionButton(
-          onPressed:setCameraResult,
+          onPressed: () {
+            setState(() {
+              setCameraResult();
+              message = message;
+            });
+          },
           child: Icon(
             Icons.translate,
             size: 40.0,
@@ -162,6 +222,29 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
         ),
       ),
     );
+  }
+  nextPage(BuildContext context){
+    if(widget.caller==2){
+      Navigator.pop(this.context,[this.message]);
+
+//    print("cameraaaaaaaaaa" +widget.id);
+//
+//      Navigator.push(
+//        context,
+//        MaterialPageRoute(
+//          builder: (context) => Contact(),
+//        ),
+//      );
+
+    }
+    else if(widget.caller==1){
+//      speak();
+    }
+  }
+
+  Future speak(String str)async{
+    await flutterTts.speak(str);
+
   }
 
   Widget getRecordedVideos(int counter) {
@@ -193,7 +276,6 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
     return item;
   }
 
-
   void onCameraSelected(CameraDescription cameraDescription) async {
     if (controller != null) await controller.dispose();
     controller = CameraController(cameraDescription, ResolutionPreset.medium);
@@ -217,15 +299,9 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
   String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
 
   void setCameraResult() {
-    print("Recording Done!");
-
-//    Navigator.push(
-//      context,
-//      MaterialPageRoute(
-//        builder: (context) => HomeScreen(path: videoPath,),
-//      ),
-//    );
-    }
+    File video = new File(videoPath);
+    message = upload(video);
+  }
 
   void onVideoRecordButtonPressed() {
     print('onVideoRecordButtonPressed()');
@@ -297,4 +373,43 @@ class _CameraHomeScreenState extends State<CameraHomeScreen> {
 
   void logError(String code, String message) =>
       print('Error: $code\nMessage: $message');
+
+  Future<String> upload(File imageFile) async {
+
+    print("translation strted");
+    // open a bytestream
+    var stream =
+        new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
+    // get file length
+    var length = await imageFile.length();
+
+    // string to uri
+    var uri = Uri.parse("https://sign-ml-api.herokuapp.com/predict/classifier");
+
+    // create multipart request
+    var request = new http.MultipartRequest("POST", uri);
+
+    // multipart that takes file
+    var multipartFile = new http.MultipartFile('file', stream, length,
+        filename: basename(imageFile.path));
+
+    // add file to multipart
+    request.files.add(multipartFile);
+
+    // send
+    var response = await request.send();
+    print(response.statusCode);
+
+    // listen for response
+    response.stream.transform(utf8.decoder).listen((value) {
+      if (response.statusCode == 200) {
+        String data = value;
+        var decodedData = jsonDecode(data);
+        String message = decodedData['readable_predictions'];
+        print(message);
+        speak(message);
+      } else
+        print(response.statusCode);
+    });
+  }
 }

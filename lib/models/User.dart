@@ -5,6 +5,7 @@ class User {
   final String username;
   final String email;
   final String password;
+  final String photoUrl;
 
 
   User({
@@ -12,13 +13,15 @@ class User {
     this.username,
     this.email,
     this.password,
+    this.photoUrl,
   });
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(id: doc.data['id'],
       email: doc.data['email'],
-      username: doc.data['user_name'],
-      password: doc.data['password'], );
+      username: doc.data['username'],
+      password: doc.data['password'],
+      photoUrl: doc['photoUrl'],);
 
   }
 }

@@ -7,8 +7,8 @@ import 'package:flash_chat/screens/header.dart';
 import 'package:flash_chat/screens/progress.dart';
 import 'package:flash_chat/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'edit_profile.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
+final GoogleSignIn googleSignIn = GoogleSignIn();
 final _firestore = Firestore.instance;
 final userref = _firestore.collection('Users');
 final DateTime timestamp = DateTime.now();
@@ -29,10 +29,10 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+
   bool isFriend = false;
   String name;
   String currentUserId;
-
   String currentUserName;
   String profileUserId;
 
@@ -46,22 +46,25 @@ class _ProfileState extends State<Profile> {
   }
 
   void getcurrentuser() async {
-    print('enter getcurrentuser metod');
+    print('enter getcurrentuser method');
     try {
-      final user = await _auth.currentUser();
-      print('assign user to current user from auth');
+       GoogleSignInAccount user = googleSignIn.currentUser;
+      if(user == null){
+          user = await googleSignIn.signInSilently();
+      }
       if (user != null) {
-        user_current = user;
+         print("***********************************************************");
         DocumentSnapshot doc = await _firestore
             .collection('Users')
-            .document(user_current.uid)
+            .document(user.id)
             .get();
-        setState(() {
+        setState(() async{
           currentuser = User.fromDocument(doc);
-          currentUserId = currentuser.id;
+          currentUserId=currentuser.id;
           currentUserName = currentuser.username;
         });
       }
+      print('#######################################################33');
     } catch (e) {
       print(e.toString());
     }
@@ -93,42 +96,12 @@ class _ProfileState extends State<Profile> {
         .document(currentUserId)
         .get();
     setState(() {
-      isFriend = doc == null ? false : true;
+      isFriend = doc.exists;
     });
     print('is friend');
     print(isFriend);
   }
 
-  Column buildCountColumn(String label, int count) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          count.toString(),
-          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
-        ),
-        Container(
-          margin: EdgeInsets.only(top: 4.0),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 15.0,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  editProfile() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => EditProfile(currentUserId: currentUserId)));
-  }
 
   Container buildButton({String text, Function function}) {
     return Container(
@@ -157,15 +130,32 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+  Container buildmyprofile({String text, Function function}) {
+    return Container(
+      padding: EdgeInsets.only(top: 2.0),
+      child: FlatButton(
+        onPressed: function,
+        child: Container(
+          width: 200.0,
+          height: 27.0,
+          child: Text(
+            text,
+
+          ),
+
+        ),
+      ),
+    );
+  }
 
   buildProfileButton() {
-    print('you are friend?$isFriend');
     bool isProfileOwner = currentUserId == widget.profileId;
-    print(widget.profileId);
-    print("id value");
     if (isProfileOwner) {
-      print(isProfileOwner);
-      return buildButton(text: "Edit Profile", function: editProfile);
+      return buildmyprofile(
+        text: "",
+        function: myprofile(),
+      );
+
     } else if (isFriend) {
       return buildButton(
         text: "Unfriend",
@@ -178,7 +168,9 @@ class _ProfileState extends State<Profile> {
       );
     }
   }
+   myprofile(){
 
+   }
   handleunfriendUser() {
     setState(() {
       isFriend = false;
@@ -231,7 +223,7 @@ class _ProfileState extends State<Profile> {
         .setData({
       "username": currentUserName,
       "userId": currentUserId,
-      //"userProfileImg": currentUser.photoUrl,
+      "userProfileImg": currentuser.photoUrl,
       "timestamp": timestamp,
     });
     // Put THAT user on YOUR friend collection (update your following collection)
@@ -242,7 +234,7 @@ class _ProfileState extends State<Profile> {
         .setData({
       "username": profileUserName,
       "userId": profileUserId,
-      //"userProfileImg": currentUser.photoUrl,
+      "userProfileImg": currentuser.photoUrl,
       "timestamp": timestamp,
     });
     // add activity feed item for that user to notify about new follower (us)
@@ -253,10 +245,10 @@ class _ProfileState extends State<Profile> {
         .setData({
       "type": "added you",
       "ownerId": widget.profileId,
-      //"username": home.currentUser.username,
+
       "username": currentUserName,
       "userId": currentUserId,
-      //"userProfileImg": currentUser.photoUrl,
+      "userProfileImg": currentuser.photoUrl,
       "timestamp": timestamp,
     });
   }
@@ -270,42 +262,24 @@ class _ProfileState extends State<Profile> {
           return circularProgress();
         }
         return Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(20.0),
           child: Column(
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: 40.0,
-                    backgroundColor: Colors.grey,
-                    // backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            // buildCountColumn("posts", 0),
-                            //buildCountColumn("followers", 0),
-                            //buildCountColumn("following", 0),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            buildProfileButton(),
-                          ],
-                        ),
-                      ],
+                  Container(
+                    padding: EdgeInsets.only(right: 15,left: 15),
+                    alignment: Alignment.centerRight,
+                    child: CircleAvatar(
+                      radius: 140.0,
+                      backgroundColor: Colors.grey,
+                      // backgroundImage: CachedNetworkImageProvider(user.photoUrl),
                     ),
                   ),
                 ],
               ),
               Container(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 padding: EdgeInsets.only(top: 12.0),
                 child: Text(
                   user_profile_owner.username,
@@ -316,22 +290,11 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
               Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 4.0),
-                child: Text(
-                  user_profile_owner.username,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                alignment: Alignment.center,
+                child:
+                  buildProfileButton(),
               ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 2.0),
-                child: Text(
-                  user_profile_owner.email,
-                ),
-              ),
+
             ],
           ),
         );

@@ -124,10 +124,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     isme: currentuser == messagesender,
                     isfriend: friendemail == messagesendto,
                   );
-                  print('message sender $messagesender');
-                  print("current user$currentuser");
-                  print('message send to $messagesendto');
-                  print('friend email $friendemail');
                   if ((messagesender == currentuser &&
                           messagesendto == friendemail) ||
                       (messagesender == friendemail &&

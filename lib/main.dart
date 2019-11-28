@@ -19,7 +19,7 @@ Future<Null> main() async {
   }
   runApp(MaterialApp(
 
-    initialRoute: WelcomeScreen.id,
+    initialRoute: Home.id,
     routes: {
       WelcomeScreen.id: (context) => WelcomeScreen(),
       Home.id: (context) => Home(),
@@ -29,7 +29,7 @@ Future<Null> main() async {
       Search.id: (context) => Search(),
       // EditProfile.id:(context)=>EditProfile(),
     },
-    home: WelcomeScreen(),
+    home: Home(),
   ),
   );
 }

@@ -9,7 +9,9 @@ import 'package:flash_chat/models//User.dart';
 import 'package:flash_chat/screens/progress.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
+final GoogleSignIn googleSignIn = GoogleSignIn();
 final friendsRef = Firestore.instance.collection('friends');
 final _firestore = Firestore.instance;
 final activityFeedRef = Firestore.instance.collection('feed');
@@ -35,13 +37,15 @@ class _ContactState extends State<Contact> {
   void getcurrentuser() async {
     print('enter getcurrentuser metod');
     try {
-      final user = await _auth.currentUser();
-      print('assign user to current user from auth');
+      GoogleSignInAccount user = googleSignIn.currentUser;
+      if(user == null){
+        user = await googleSignIn.signInSilently();
+      }
       if (user != null) {
-        user_current = user;
+
         DocumentSnapshot doc = await _firestore
             .collection('Users')
-            .document(user_current.uid)
+            .document(user.id)
             .get();
         setState(() {
           currentuser = User.fromDocument(doc);

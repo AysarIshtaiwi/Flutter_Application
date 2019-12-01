@@ -21,7 +21,7 @@ class _SearchState extends State<Search> {
 
   handleSearch(String query) {
     Future<QuerySnapshot> users = _firestore.collection('Users')
-        .where("user_name", isGreaterThanOrEqualTo: query)
+        .where("username", isGreaterThanOrEqualTo: query)
         .getDocuments();
     setState(() {
       searchResultsFuture = users;

@@ -1,3 +1,4 @@
+import 'package:flash_chat/components/progress.dart';
 import 'package:flash_chat/main.dart';
 import 'package:flash_chat/models/User.dart';
 import 'package:flash_chat/screens/CameraHomeScreen.dart';
@@ -6,18 +7,20 @@ import 'package:flash_chat/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
+final GoogleSignIn googleSignIn = GoogleSignIn();
 final _firestore = Firestore.instance;
 final userref = _firestore.collection('Users');
-FirebaseUser loggedin;
+User loggedin;
 User currentuser;
 String id;
 User frienduser;
 
+
 class ChatScreen extends StatefulWidget {
   static String id = 'chat_screen';
   final String profileId;
-  String result;
+  static String result;
 
   ChatScreen({this.profileId});
 
@@ -44,13 +47,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void getcurrentuser() async {
     try {
-      final user = await _auth.currentUser();
+      GoogleSignInAccount user = googleSignIn.currentUser;
+      if(user == null){
+        user = await googleSignIn.signInSilently();
+      }
       if (user != null) {
-        loggedin = user;
-        id = user.uid;
-        DocumentSnapshot doc = await userref.document(id).get();
+
+        DocumentSnapshot doc = await userref.document(user.id).get();
         currentuser = User.fromDocument(doc);
-        print(loggedin.email);
+        print(loggedin.email+"******************************************");
       }
     } catch (e) {
       print(e);
@@ -104,6 +109,12 @@ class _ChatScreenState extends State<ChatScreen> {
             StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('Messages').snapshots(),
               builder: (context, snapshot) {
+                if(snapshot.connectionState == ConnectionState.waiting){
+                  return CircularProgressIndicator();
+                }
+                if(snapshot.hasError){
+                  return CircularProgressIndicator();
+                }
                 if (!snapshot.hasData) {
                   return Center(
                     child: CircularProgressIndicator(
@@ -111,33 +122,34 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   );
                 }
-                final messages = snapshot.data.documents.reversed;
-                List<MessageBubble> messageBubbles = [];
-                for (var message in messages) {
-                  final messagetext = message.data['text'];
-                  final messagesender = message.data['sender'];
-                  final currentuser = loggedin.email;
-                  final messagesendto = message.data['sendto'];
-                  final messageBubble = MessageBubble(
-                    sender: messagesender,
-                    text: messagetext,
-                    isme: currentuser == messagesender,
-                    isfriend: friendemail == messagesendto,
-                  );
-                  if ((messagesender == currentuser &&
-                          messagesendto == friendemail) ||
-                      (messagesender == friendemail &&
-                          messagesendto == currentuser)) {
-                    messageBubbles.add(messageBubble);
-                  }
-                }
-                return Expanded(
-                  child: ListView(
-                    reverse: true,
-                    padding: EdgeInsets.all(10.0),
-                    children: messageBubbles,
-                  ),
-                );
+//                final messages = snapshot.data.documents.reversed;
+//                List<MessageBubble> messageBubbles = [];
+//                for (var message in messages) {
+//                  final messagetext = message.data['text'];
+//                  final messagesender = message.data['sender'];
+//                  final currentuser = loggedin.email == null ? "":loggedin.email;
+//                  final messagesendto = message.data['sendto'];
+//                  final messageBubble = MessageBubble(
+//                    sender: messagesender,
+//                    text: messagetext,
+//                    isme: currentuser == messagesender,
+//                    isfriend: friendemail == messagesendto,
+//                  );
+//                  if ((messagesender == currentuser &&
+//                          messagesendto == friendemail) ||
+//                      (messagesender == friendemail &&
+//                          messagesendto == currentuser)) {
+//                    messageBubbles.add(messageBubble);
+//                  }
+//                }
+//                return Expanded(
+//                  child: ListView(
+//                    reverse: true,
+//                    padding: EdgeInsets.all(10.0),
+//                    children: messageBubbles,
+//                  ),
+//                );
+              return CircularProgressIndicator();
               },
             ),
             Container(

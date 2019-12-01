@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1066429145090",
+    "firebase_url": "https://my-chat-94cbc.firebaseio.com",
+    "project_id": "my-chat-94cbc",
+    "storage_bucket": "my-chat-94cbc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066429145090:android:1e610c770b75054081c71b",
+        "android_client_info": {
+          "package_name": "co.appbrewery.flash_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1066429145090-q3ikd7fos7iqlba2dp26bmph8aoqv8tn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.appbrewery.flash_chat",
+            "certificate_hash": "5c7b1697adae25170a5202a1b07ab02e315d2c1f"
+          }
+        },
+        {
+          "client_id": "1066429145090-43bvd5rsdm625mv4jeh1tet88g38ubft.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVZBv9Kv9Iia9Eyf07FpdVweY2L57f5Co"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1066429145090-43bvd5rsdm625mv4jeh1tet88g38ubft.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
